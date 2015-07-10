@@ -115,19 +115,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             if (event.getAction() == MotionEvent.ACTION_UP) {
                 deltaX = event.getRawX() - initialX;
                 deltaY = event.getRawX() - initialY;
-                if (deltaX > 0) {//swiped right
+                if (deltaX < 0) {//swiped right
                     if (player.getX() == centerCoord)
                         player.setX(rightCoord);
-                    else
+                    else if(player.getX() == leftCoord)
                         player.setX(centerCoord);
-                    jump = true;
                     Log.d(TAG, "Swiped right");
-                } else if (deltaX < 0) { //swiped left
+                } else if (deltaX > 0) { //swiped left
                     if (player.getX() == centerCoord)
                         player.setX(leftCoord);
-                    else
+                    else if(player.getX() == rightCoord)
                         player.setX(centerCoord);
-                    jump = true;
                     Log.d(TAG, "Swiped left");
                 } else {
                     //player.setX((screenWidth - playerBit.getWidth())/2);
@@ -143,16 +141,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawBitmap(backgroundBit, 0, 0, null);
-        /*if (jump) {
+        if (jump) {
             if (player.getX() == x) {
-                if(x < yMax)
-                    y += player.getDY();
-                else {
+                if (y > yMax)
                     y -= player.getDY();
-                    if(y <= startY)
-                        jump = false;
+                else {
+                    jump = false;
                 }
-            }*/ if (x < player.getX() && x < centerCoord) {
+            }
+        }
+        else {
+            if (player.getX() == x && y < startY) {
+                y += player.getDY();
+            } else if (x < player.getX() && x < centerCoord) {
                 x += player.getDX();
                 y = (int) (jumpVertexFactor * (x - rightCoord) * (x - centerCoord) + startY);
             } else if (x > player.getX() && x > centerCoord) {
@@ -165,7 +166,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 x -= player.getDX();
                 y = (int) (jumpVertexFactor * (x - rightCoord) * (x - centerCoord) + startY);
             }
-        //}
+        }
         canvas.drawBitmap(playerBit, x, y, null);
         invalidate();
     }
