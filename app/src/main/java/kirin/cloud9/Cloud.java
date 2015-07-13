@@ -10,22 +10,23 @@ import android.view.View;
 /**
  * Created by ctsou on 7/10/2015.
  */
-public class Player {
+public class Cloud {
 
     int x;
     int y;
-    final int DX = 8;
-    final int DY = 20;
+    final int DX = 15;
+    final int DY = 15;
     int width;
     int height;
-    Bitmap player;
+    Bitmap cloud;
+    int distanceRank;
 
-    public Player(int px, int py, Bitmap pPlayer) {
+    public Cloud(int px, int py, Bitmap cCloud) {
         x = px;
         y = py;
-        width = pPlayer.getWidth();
-        height = pPlayer.getHeight();
-        player = pPlayer;
+        width = cCloud.getWidth();
+        height = cCloud.getHeight();
+        cloud = cCloud;
     }
 
     public int getX() {

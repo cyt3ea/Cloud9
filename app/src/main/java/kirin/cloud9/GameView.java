@@ -27,8 +27,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     int x, y;
     int leftCoord, rightCoord, centerCoord, startY, yMax;
-    final double jumpVertexFactor = (1 / 75.0);
-    boolean jump = false;
+    final double jumpVertexFactor = (1 / 25.0);
+    boolean jumpStraight = false;
+    int cloudDist;
+    int numCloudRows;
 
     int screenWidth, screenHeight;
 
@@ -37,6 +39,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     //Bitmaps
     Bitmap backgroundBit;
     Bitmap playerBit;
+    Bitmap cloudBit;
 
     //Swipe detection variables
     private float initialX = 0;
@@ -67,7 +70,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         backgroundBit = BitmapFactory.decodeResource(getResources(), R.drawable.game_back);
         playerBit = BitmapFactory.decodeResource(getResources(), R.drawable.fox);
         playerBit = Bitmap.createScaledBitmap(playerBit, 150, 150, false);
-
+        int cloudHeight = 150;
+        int cloudWidth = 225;
+        cloudBit = BitmapFactory.decodeResource(getResources(), R.drawable.cloud);
+        cloudBit = Bitmap.createScaledBitmap(cloudBit, cloudWidth, cloudHeight, false);
 
         centerCoord = (screenWidth - playerBit.getWidth()) / 2;
         startY = (int) (screenHeight * 0.8);
@@ -81,6 +87,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         rightCoord = pixelsToMoveRight - pixelsToMoveRight % player.getDX();
 
         yMax = (int) (jumpVertexFactor * ((rightCoord + centerCoord) / 2 - rightCoord) * ((rightCoord + centerCoord) / 2 - centerCoord) + startY);
+        cloudDist = (startY - yMax) - cloudHeight/2;
+        numCloudRows = startY/cloudDist;
 
         thread.start();
     }
@@ -129,7 +137,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                     Log.d(TAG, "Swiped left");
                 } else {
                     //player.setX((screenWidth - playerBit.getWidth())/2);
-                    jump = true;
+                    jumpStraight = true;
                     Log.d(TAG, "Tapped");
                 }
                 return true;
@@ -141,33 +149,41 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawBitmap(backgroundBit, 0, 0, null);
-        if (jump) {
+
+        //clouds
+        for(int i = 1; i<=numCloudRows; i++) {
+            canvas.drawBitmap(cloudBit, x, startY - cloudDist * i, null);
+        }
+
+        //move player jumping
+        if (jumpStraight) {
             if (player.getX() == x) {
                 if (y > yMax)
                     y -= player.getDY();
                 else {
-                    jump = false;
+                    jumpStraight = false;
                 }
             }
         }
         else {
-            if (player.getX() == x && y < startY) {
+            if (player.getX() == x && y < startY) { //fall down after jumping straight up
                 y += player.getDY();
-            } else if (x < player.getX() && x < centerCoord) {
+            } else if (x < player.getX() && x < centerCoord) { //middle -> right
                 x += player.getDX();
                 y = (int) (jumpVertexFactor * (x - rightCoord) * (x - centerCoord) + startY);
-            } else if (x > player.getX() && x > centerCoord) {
+            } else if (x > player.getX() && x > centerCoord) { //middle -> left
                 x -= player.getDX();
                 y = (int) (jumpVertexFactor * (x - leftCoord) * (x - centerCoord) + startY);
-            } else if (x < player.getX() && x >= centerCoord) {
+            } else if (x < player.getX() && x >= centerCoord) { //left -> middle
                 x += player.getDX();
                 y = (int) (jumpVertexFactor * (x - leftCoord) * (x - centerCoord) + startY);
-            } else if (x > player.getX() && x <= centerCoord) {
+            } else if (x > player.getX() && x <= centerCoord) { //right -> middle
                 x -= player.getDX();
                 y = (int) (jumpVertexFactor * (x - rightCoord) * (x - centerCoord) + startY);
             }
         }
         canvas.drawBitmap(playerBit, x, y, null);
+
         invalidate();
     }
 }
