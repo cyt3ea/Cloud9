@@ -14,6 +14,25 @@ public class Cloud {
 
     int x;
     int y;
+    int drawX;
+    int drawY;
+
+    public int getDrawX() {
+        return drawX;
+    }
+
+    public void setDrawX(int drawX) {
+        this.drawX = drawX;
+    }
+
+    public int getDrawY() {
+        return drawY;
+    }
+
+    public void setDrawY(int drawY) {
+        this.drawY = drawY;
+    }
+
     final int DX = 15;
     final int DY = 15;
     int width;
@@ -21,12 +40,14 @@ public class Cloud {
     Bitmap cloud;
     int distanceRank;
 
-    public Cloud(int px, int py, Bitmap cCloud) {
+    public Cloud(int px, int py, Bitmap cCloud, int cDrawX, int cDrawY) {
         x = px;
         y = py;
         width = cCloud.getWidth();
         height = cCloud.getHeight();
         cloud = cCloud;
+        drawX = cDrawX;
+        drawY = cDrawY;
     }
 
     public int getX() {

@@ -15,6 +15,11 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Random;
+import java.util.Set;
+
 /**
  * Created by ctsou on 7/10/2015.
  */
@@ -25,12 +30,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     static final int MIN_DISTANCE = 150;
     String TAG = "GameView: ";
 
-    int x, y;
     int leftCoord, rightCoord, centerCoord, startY, yMax;
     final double jumpVertexFactor = (1 / 25.0);
     boolean jumpStraight = false;
     int cloudDist;
     int numCloudRows;
+    ArrayList<ArrayList<Cloud>> cloudList = new ArrayList<ArrayList<Cloud>>();
+
+    Random rng = new Random();
 
     int screenWidth, screenHeight;
 
@@ -71,24 +78,29 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         playerBit = BitmapFactory.decodeResource(getResources(), R.drawable.fox);
         playerBit = Bitmap.createScaledBitmap(playerBit, 150, 150, false);
         int cloudHeight = 150;
-        int cloudWidth = 225;
+        int cloudWidth = 150;
         cloudBit = BitmapFactory.decodeResource(getResources(), R.drawable.cloud);
         cloudBit = Bitmap.createScaledBitmap(cloudBit, cloudWidth, cloudHeight, false);
 
         centerCoord = (screenWidth - playerBit.getWidth()) / 2;
         startY = (int) (screenHeight * 0.8);
-        x = centerCoord;
-        y = startY;
-        player = new Player(centerCoord, startY, playerBit);
+        player = new Player(centerCoord, startY, playerBit, centerCoord, startY);
 
-        int pixelsToMoveLeft = (screenWidth - playerBit.getWidth()) / 2 + (screenWidth - playerBit.getWidth()) / 3;
-        leftCoord = pixelsToMoveLeft - pixelsToMoveLeft % player.getDX();
-        int pixelsToMoveRight = (screenWidth - playerBit.getWidth()) / 2 - (screenWidth - playerBit.getWidth()) / 3;
-        rightCoord = pixelsToMoveRight - pixelsToMoveRight % player.getDX();
+        int pixelsToMoveRight = (screenWidth - playerBit.getWidth()) / 2 + (screenWidth - playerBit.getWidth()) / 3;
+        rightCoord = pixelsToMoveRight - ((pixelsToMoveRight-centerCoord) % player.getDX());
+        int pixelsToMoveLeft = (screenWidth - playerBit.getWidth()) / 2 - (screenWidth - playerBit.getWidth()) / 3;
+        leftCoord = pixelsToMoveLeft + ((centerCoord - pixelsToMoveLeft) % player.getDX());
 
         yMax = (int) (jumpVertexFactor * ((rightCoord + centerCoord) / 2 - rightCoord) * ((rightCoord + centerCoord) / 2 - centerCoord) + startY);
         cloudDist = (startY - yMax) - cloudHeight/2;
         numCloudRows = startY/cloudDist;
+
+        //cloudList.add(new ArrayList<Cloud>());
+        for(int k = 1; k <= numCloudRows+1; k++) {
+            cloudList.add(generateCloudRow(k));
+        }
+
+        //Log.d(TAG, "LEFT: " + leftCoord + ", CENTER: " + centerCoord + ", RIGHT: " + rightCoord);
 
         thread.start();
     }
@@ -123,13 +135,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             if (event.getAction() == MotionEvent.ACTION_UP) {
                 deltaX = event.getRawX() - initialX;
                 deltaY = event.getRawX() - initialY;
-                if (deltaX < 0) {//swiped right
+                if (deltaX > 0) {//swiped right
                     if (player.getX() == centerCoord)
                         player.setX(rightCoord);
                     else if(player.getX() == leftCoord)
                         player.setX(centerCoord);
                     Log.d(TAG, "Swiped right");
-                } else if (deltaX > 0) { //swiped left
+                } else if (deltaX < 0) { //swiped left
                     if (player.getX() == centerCoord)
                         player.setX(leftCoord);
                     else if(player.getX() == rightCoord)
@@ -140,6 +152,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                     jumpStraight = true;
                     Log.d(TAG, "Tapped");
                 }
+                //cloudList.remove(0);
+                for(int k = 0; k < cloudList.size(); k++) {
+                    for(Cloud c : cloudList.get(k)) {
+                        c.setY(c.getY() + cloudDist);
+                    }
+                }
+                cloudList.add(generateCloudRow(numCloudRows+1));
                 return true;
             }
         }
@@ -151,39 +170,101 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawBitmap(backgroundBit, 0, 0, null);
 
         //clouds
-        for(int i = 1; i<=numCloudRows; i++) {
-            canvas.drawBitmap(cloudBit, x, startY - cloudDist * i, null);
+        for(int i = 1; i<=cloudList.size(); i++) {
+            for(Cloud c : cloudList.get(i-1)) {
+                if(c.getDrawY() < c.getY())
+                    c.setDrawY(c.getDrawY()+player.getDY());
+                canvas.drawBitmap(cloudBit, c.getDrawX(), c.getDrawY(), null);
+            }
         }
 
         //move player jumping
         if (jumpStraight) {
-            if (player.getX() == x) {
-                if (y > yMax)
-                    y -= player.getDY();
+            if (player.getX() == player.getDrawX()) {
+                if (player.getDrawY() > yMax)
+                    player.setDrawY(player.getDrawY()-player.getDY());
                 else {
                     jumpStraight = false;
                 }
             }
         }
         else {
-            if (player.getX() == x && y < startY) { //fall down after jumping straight up
-                y += player.getDY();
-            } else if (x < player.getX() && x < centerCoord) { //middle -> right
-                x += player.getDX();
-                y = (int) (jumpVertexFactor * (x - rightCoord) * (x - centerCoord) + startY);
-            } else if (x > player.getX() && x > centerCoord) { //middle -> left
-                x -= player.getDX();
-                y = (int) (jumpVertexFactor * (x - leftCoord) * (x - centerCoord) + startY);
-            } else if (x < player.getX() && x >= centerCoord) { //left -> middle
-                x += player.getDX();
-                y = (int) (jumpVertexFactor * (x - leftCoord) * (x - centerCoord) + startY);
-            } else if (x > player.getX() && x <= centerCoord) { //right -> middle
-                x -= player.getDX();
-                y = (int) (jumpVertexFactor * (x - rightCoord) * (x - centerCoord) + startY);
+            if (player.getX() == player.getDrawX() && player.getDrawY() < startY) { //fall down after jumping straight up
+                player.setDrawY(player.getDrawY() + player.getDY());
+            } else if (player.getDrawX() < player.getX() && player.getDrawX() < centerCoord) { //middle -> right
+                player.setDrawX(player.getDrawX() + player.getDX());
+                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
+            } else if (player.getDrawX() > player.getX() && player.getDrawX() > centerCoord) { //middle -> left
+                player.setDrawX(player.getDrawX()-player.getDX());
+                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
+            } else if (player.getDrawX() < player.getX() && player.getDrawX() >= centerCoord) { //left -> middle
+                player.setDrawX(player.getDrawX()+player.getDX());
+                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
+            } else if (player.getDrawX() > player.getX() && player.getDrawX() <= centerCoord) { //right -> middle
+                player.setDrawX(player.getDrawX() - player.getDX());
+                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
             }
+            //Log.d(TAG, x + "  " + y);
         }
-        canvas.drawBitmap(playerBit, x, y, null);
+        canvas.drawBitmap(playerBit, player.getDrawX(), player.getDrawY(), null);
 
         invalidate();
+    }
+
+    public ArrayList<Cloud> generateCloudRow(int rank) {
+        ArrayList<Cloud> tempCloudList = new ArrayList<Cloud>();
+        if(cloudList.size() == 0) {
+            int numClouds = 1 + (int)(Math.random()*3);
+            Set<Integer> generated = new LinkedHashSet<Integer>();
+            while(generated.size() != numClouds) {
+                int next = rng.nextInt(3) + 1;
+                generated.add(next);
+            }
+            for(Integer cloudPos : generated) {
+                if (cloudPos == 1)
+                    tempCloudList.add(new Cloud(leftCoord, startY - cloudDist * rank, cloudBit, leftCoord, startY - cloudDist * rank));
+                else if (cloudPos == 2)
+                    tempCloudList.add(new Cloud(centerCoord, startY - cloudDist * rank, cloudBit, centerCoord, startY - cloudDist * rank));
+                else if (cloudPos == 3)
+                    tempCloudList.add(new Cloud(rightCoord, startY - cloudDist * rank, cloudBit, rightCoord, startY - cloudDist * rank));
+            }
+
+        }
+        else {
+            ArrayList<Cloud> lastCloudRow = cloudList.get(cloudList.size()-1);
+            Set<Integer> generated = new LinkedHashSet<Integer>();
+            if(lastCloudRow.size() != 0) {
+                int cloudSelection = 0 + (int) (Math.random() * (lastCloudRow.size() - 1));
+                Cloud c = lastCloudRow.get(cloudSelection);
+                if (c.getX() == leftCoord) {
+                    int numClouds = 1 + (int) (Math.random() * 2);
+                    for (int i = 0; i < numClouds; i++) {
+                        int next = rng.nextInt(2) + 1;
+                        generated.add(next);
+                    }
+                } else if (c.getX() == centerCoord) {
+                    int numClouds = 1 + (int) (Math.random() * 3);
+                    for (int i = 0; i < numClouds; i++) {
+                        int next = rng.nextInt(3) + 1;
+                        generated.add(next);
+                    }
+                } else if (c.getX() == rightCoord) {
+                    int numClouds = 1 + (int) (Math.random() * 2);
+                    for (int i = 0; i < numClouds; i++) {
+                        int next = rng.nextInt(3) + 2;
+                        generated.add(next);
+                    }
+                }
+                for (Integer cloudPos : generated) {
+                    if (cloudPos == 1)
+                        tempCloudList.add(new Cloud(leftCoord, startY - cloudDist * rank, cloudBit, leftCoord, startY - cloudDist * rank));
+                    else if (cloudPos == 2)
+                        tempCloudList.add(new Cloud(centerCoord, startY - cloudDist * rank, cloudBit, centerCoord, startY - cloudDist * rank));
+                    else if (cloudPos == 3)
+                        tempCloudList.add(new Cloud(rightCoord, startY - cloudDist * rank, cloudBit, rightCoord, startY - cloudDist * rank));
+                }
+            }
+        }
+        return tempCloudList;
     }
 }
