@@ -165,6 +165,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         return super.onTouchEvent(event);
     }
 
+    public void removeOffScreenClouds() {
+        ArrayList<Cloud> lowestCloudRow = cloudList.get(0);
+        for(Cloud c : lowestCloudRow) {
+            if(c.getY() > screenHeight) {
+                cloudList.remove(0);
+                break;
+            }
+        }
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         canvas.drawBitmap(backgroundBit, 0, 0, null);
@@ -172,8 +182,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         //clouds
         for(int i = 1; i<=cloudList.size(); i++) {
             for(Cloud c : cloudList.get(i-1)) {
-                if(c.getDrawY() < c.getY())
-                    c.setDrawY(c.getDrawY()+player.getDY());
+                if(c.getDrawY() < c.getY()) {
+                    c.setDrawY(c.getDrawY() + player.getDY());
+                    removeOffScreenClouds();
+                }
                 canvas.drawBitmap(cloudBit, c.getDrawX(), c.getDrawY(), null);
             }
         }
@@ -212,6 +224,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public ArrayList<Cloud> generateCloudRow(int rank) {
+        Log.d(TAG, cloudList.size() + " ");
         ArrayList<Cloud> tempCloudList = new ArrayList<Cloud>();
         if(cloudList.size() == 0) {
             int numClouds = 1 + (int)(Math.random()*3);
@@ -265,6 +278,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 }
             }
         }
+        if(tempCloudList.size() == 0)
+            tempCloudList.add(new Cloud(centerCoord, startY - cloudDist * rank, cloudBit, centerCoord, startY - cloudDist * rank));
         return tempCloudList;
     }
 }
