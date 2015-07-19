@@ -36,6 +36,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     boolean dead = false;
     int cloudDist;
     int numCloudRows;
+    int playerOffset;
     ArrayList<ArrayList<Cloud>> cloudList = new ArrayList<ArrayList<Cloud>>();
 
     boolean jump = false;
@@ -82,12 +83,14 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         playerBit = Bitmap.createScaledBitmap(playerBit, 150, 150, false);
         int cloudHeight = 150;
         int cloudWidth = 150;
+        playerOffset = cloudHeight/3;
         cloudBit = BitmapFactory.decodeResource(getResources(), R.drawable.cloud);
         cloudBit = Bitmap.createScaledBitmap(cloudBit, cloudWidth, cloudHeight, false);
 
+
         centerCoord = (screenWidth - playerBit.getWidth()) / 2;
         startY = (int) (screenHeight * 0.8);
-        player = new Player(centerCoord, startY, playerBit, centerCoord, startY);
+        player = new Player(centerCoord, startY - playerOffset, playerBit, centerCoord, startY);
 
         int pixelsToMoveRight = (screenWidth - playerBit.getWidth()) / 2 + (screenWidth - playerBit.getWidth()) / 3;
         rightCoord = pixelsToMoveRight - ((pixelsToMoveRight-centerCoord) % player.getDX());
@@ -95,8 +98,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         leftCoord = pixelsToMoveLeft + ((centerCoord - pixelsToMoveLeft) % player.getDX());
 
         yMaxCloud = (int) (jumpVertexFactor * ((rightCoord + centerCoord) / 2 - rightCoord) * ((rightCoord + centerCoord) / 2 - centerCoord) + startY);
-        yMaxCharacter = (startY - yMaxCloud)/2 + yMaxCloud;
-        cloudDist = (startY - yMaxCloud) - cloudHeight/2;
+        yMaxCharacter = (startY - yMaxCloud)/2 + yMaxCloud - playerOffset;
+        cloudDist = (startY - yMaxCloud) - cloudHeight/3;
         numCloudRows = startY/cloudDist;
 
         //cloudList.add(new ArrayList<Cloud>());
@@ -218,24 +221,24 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
         else {
-            if (player.getX() == player.getDrawX() && player.getDrawY() < startY) { //fall down after jumping straight up
+            if (player.getX() == player.getDrawX() && player.getDrawY() < startY - playerOffset) { //fall down after jumping straight up
                 player.setDrawY(player.getDrawY() + player.getDY());
             } else if ((player.getDrawX() < player.getX() && player.getDrawX() < centerCoord && !dead) || (dead && player.getMovement().equals("LeftToMid") && player.drawY < screenHeight)) { //left -> mid
                 Log.d(TAG, "Left to Mid");
                 player.setDrawX(player.getDrawX() + player.getDX());
-                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
             } else if ((player.getDrawX() > player.getX() && player.getDrawX() > centerCoord && !dead) || (dead && player.getMovement().equals("RightToMid") && player.drawY < screenHeight)) { //right -> mid
                 Log.d(TAG, "Right to Mid");
                 player.setDrawX(player.getDrawX() - player.getDX());
-                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
             } else if ((player.getDrawX() < player.getX() && player.getDrawX() >= centerCoord && !dead) || (dead && player.getMovement().equals("MidToRight") && player.drawY < screenHeight)) { //mid -> right
                 Log.d(TAG, "Mid to Right");
                 player.setDrawX(player.getDrawX() + player.getDX());
-                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
             } else if ((player.getDrawX() > player.getX() && player.getDrawX() <= centerCoord && !dead) || (dead && player.getMovement().equals("MidToLeft") && player.drawY < screenHeight)) { //mid -> left
                 Log.d(TAG, "Mid to Left");
                 player.setDrawX(player.getDrawX() - player.getDX());
-                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
             }
             else
                 jump = false;

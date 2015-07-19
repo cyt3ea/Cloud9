@@ -16,6 +16,7 @@ public class Cloud {
     int y;
     int drawX;
     int drawY;
+    boolean touched = false;
 
     public int getDrawX() {
         return drawX;
