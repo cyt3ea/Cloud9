@@ -30,9 +30,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     static final int MIN_DISTANCE = 150;
     String TAG = "GameView: ";
 
-    int leftCoord, rightCoord, centerCoord, startY, yMax;
+    int leftCoord, rightCoord, centerCoord, startY, yMaxCloud, yMaxCharacter;
     final double jumpVertexFactor = (1 / 25.0);
     boolean jumpStraight = false;
+    boolean dead = false;
     int cloudDist;
     int numCloudRows;
     ArrayList<ArrayList<Cloud>> cloudList = new ArrayList<ArrayList<Cloud>>();
@@ -91,8 +92,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         int pixelsToMoveLeft = (screenWidth - playerBit.getWidth()) / 2 - (screenWidth - playerBit.getWidth()) / 3;
         leftCoord = pixelsToMoveLeft + ((centerCoord - pixelsToMoveLeft) % player.getDX());
 
-        yMax = (int) (jumpVertexFactor * ((rightCoord + centerCoord) / 2 - rightCoord) * ((rightCoord + centerCoord) / 2 - centerCoord) + startY);
-        cloudDist = (startY - yMax) - cloudHeight/2;
+        yMaxCloud = (int) (jumpVertexFactor * ((rightCoord + centerCoord) / 2 - rightCoord) * ((rightCoord + centerCoord) / 2 - centerCoord) + startY);
+        yMaxCharacter = (startY - yMaxCloud)/2 + yMaxCloud;
+        cloudDist = (startY - yMaxCloud) - cloudHeight/2;
         numCloudRows = startY/cloudDist;
 
         //cloudList.add(new ArrayList<Cloud>());
@@ -136,16 +138,24 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 deltaX = event.getRawX() - initialX;
                 deltaY = event.getRawX() - initialY;
                 if (deltaX > 0) {//swiped right
-                    if (player.getX() == centerCoord)
+                    if (player.getX() == centerCoord) {
                         player.setX(rightCoord);
-                    else if(player.getX() == leftCoord)
+                        player.setMovement("MidToRight");
+                    }
+                    else if(player.getX() == leftCoord) {
                         player.setX(centerCoord);
+                        player.setMovement("LeftToMid");
+                    }
                     Log.d(TAG, "Swiped right");
                 } else if (deltaX < 0) { //swiped left
-                    if (player.getX() == centerCoord)
+                    if (player.getX() == centerCoord) {
                         player.setX(leftCoord);
-                    else if(player.getX() == rightCoord)
+                        player.setMovement("MidToLeft");
+                    }
+                    else if(player.getX() == rightCoord) {
                         player.setX(centerCoord);
+                        player.setMovement("RightToMid");
+                    }
                     Log.d(TAG, "Swiped left");
                 } else {
                     //player.setX((screenWidth - playerBit.getWidth())/2);
@@ -153,12 +163,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                     Log.d(TAG, "Tapped");
                 }
                 //cloudList.remove(0);
-                for(int k = 0; k < cloudList.size(); k++) {
-                    for(Cloud c : cloudList.get(k)) {
-                        c.setY(c.getY() + cloudDist);
+                //Log.d(TAG, cloudList.size() + " " + numCloudRows);
+                if(cloudCharacterCollide() == 1) {
+                    for (int k = 0; k < cloudList.size(); k++) {
+                        for (Cloud c : cloudList.get(k)) {
+                            c.setY(c.getY() + cloudDist);
+                        }
                     }
+                    cloudList.add(generateCloudRow(numCloudRows + 1));
                 }
-                cloudList.add(generateCloudRow(numCloudRows+1));
                 return true;
             }
         }
@@ -192,8 +205,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
         //move player jumping
         if (jumpStraight) {
+            player.setMovement("Straight");
             if (player.getX() == player.getDrawX()) {
-                if (player.getDrawY() > yMax)
+                if (player.getDrawY() > yMaxCharacter)
                     player.setDrawY(player.getDrawY()-player.getDY());
                 else {
                     jumpStraight = false;
@@ -203,18 +217,22 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         else {
             if (player.getX() == player.getDrawX() && player.getDrawY() < startY) { //fall down after jumping straight up
                 player.setDrawY(player.getDrawY() + player.getDY());
-            } else if (player.getDrawX() < player.getX() && player.getDrawX() < centerCoord) { //middle -> right
+            } else if ((player.getDrawX() < player.getX() && player.getDrawX() < centerCoord && !dead) || (dead && player.getMovement().equals("LeftToMid") && player.drawY < screenHeight)) { //left -> mid
+                Log.d(TAG, "Left to Mid");
                 player.setDrawX(player.getDrawX() + player.getDX());
-                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
-            } else if (player.getDrawX() > player.getX() && player.getDrawX() > centerCoord) { //middle -> left
-                player.setDrawX(player.getDrawX()-player.getDX());
-                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
-            } else if (player.getDrawX() < player.getX() && player.getDrawX() >= centerCoord) { //left -> middle
-                player.setDrawX(player.getDrawX()+player.getDX());
-                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
-            } else if (player.getDrawX() > player.getX() && player.getDrawX() <= centerCoord) { //right -> middle
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
+            } else if ((player.getDrawX() > player.getX() && player.getDrawX() > centerCoord && !dead) || (dead && player.getMovement().equals("RightToMid") && player.drawY < screenHeight)) { //right -> mid
+                Log.d(TAG, "Right to Mid");
                 player.setDrawX(player.getDrawX() - player.getDX());
-                player.setDrawY((int) (jumpVertexFactor * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
+            } else if ((player.getDrawX() < player.getX() && player.getDrawX() >= centerCoord && !dead) || (dead && player.getMovement().equals("MidToRight") && player.drawY < screenHeight)) { //mid -> right
+                Log.d(TAG, "Mid to Right");
+                player.setDrawX(player.getDrawX() + player.getDX());
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY));
+            } else if ((player.getDrawX() > player.getX() && player.getDrawX() <= centerCoord && !dead) || (dead && player.getMovement().equals("MidToLeft") && player.drawY < screenHeight)) { //mid -> left
+                Log.d(TAG, "Mid to Left");
+                player.setDrawX(player.getDrawX() - player.getDX());
+                player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
             }
             //Log.d(TAG, x + "  " + y);
         }
@@ -223,8 +241,37 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         invalidate();
     }
 
+    public int cloudCharacterCollide() {
+        ArrayList<Cloud> closestCloudRow;
+
+        //hits row of clouds above it
+        if(cloudList.size() == numCloudRows + 1)
+            closestCloudRow = cloudList.get(0);
+        else
+            closestCloudRow = cloudList.get(1);
+        for(Cloud c : closestCloudRow) {
+            if(c.getX() == player.getX())
+                return 1;
+        }
+
+        //hits current row player is on
+        if(cloudList.size() == numCloudRows + 1) {
+            return 0;
+        }
+        else {
+            closestCloudRow = cloudList.get(0);
+            for(Cloud c : closestCloudRow) {
+                if(c.getX() == player.getX() )
+                    return 0;
+            }
+        }
+        //does not hit any
+        dead = true;
+        return -1;
+    }
+
     public ArrayList<Cloud> generateCloudRow(int rank) {
-        Log.d(TAG, cloudList.size() + " ");
+        //Log.d(TAG, cloudList.size() + " ");
         ArrayList<Cloud> tempCloudList = new ArrayList<Cloud>();
         if(cloudList.size() == 0) {
             int numClouds = 1 + (int)(Math.random()*3);

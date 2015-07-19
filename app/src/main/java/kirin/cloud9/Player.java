@@ -12,6 +12,7 @@ import android.view.View;
  */
 public class Player {
 
+    String movement;
     int x;
     int y;
     int drawX;
@@ -20,6 +21,10 @@ public class Player {
     final int DY = 20;
     int width;
     int height;
+
+    public String getMovement() { return movement; }
+
+    public void setMovement(String m) { movement = m; }
 
     public int getDrawX() {
         return drawX;
