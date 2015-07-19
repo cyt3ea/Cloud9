@@ -38,6 +38,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     int numCloudRows;
     ArrayList<ArrayList<Cloud>> cloudList = new ArrayList<ArrayList<Cloud>>();
 
+    boolean jump = false;
+
     Random rng = new Random();
 
     int screenWidth, screenHeight;
@@ -135,44 +137,45 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             }
 
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                deltaX = event.getRawX() - initialX;
-                deltaY = event.getRawX() - initialY;
-                if (deltaX > 0) {//swiped right
-                    if (player.getX() == centerCoord) {
-                        player.setX(rightCoord);
-                        player.setMovement("MidToRight");
-                    }
-                    else if(player.getX() == leftCoord) {
-                        player.setX(centerCoord);
-                        player.setMovement("LeftToMid");
-                    }
-                    Log.d(TAG, "Swiped right");
-                } else if (deltaX < 0) { //swiped left
-                    if (player.getX() == centerCoord) {
-                        player.setX(leftCoord);
-                        player.setMovement("MidToLeft");
-                    }
-                    else if(player.getX() == rightCoord) {
-                        player.setX(centerCoord);
-                        player.setMovement("RightToMid");
-                    }
-                    Log.d(TAG, "Swiped left");
-                } else {
-                    //player.setX((screenWidth - playerBit.getWidth())/2);
-                    jumpStraight = true;
-                    Log.d(TAG, "Tapped");
-                }
-                //cloudList.remove(0);
-                //Log.d(TAG, cloudList.size() + " " + numCloudRows);
-                if(cloudCharacterCollide() == 1) {
-                    for (int k = 0; k < cloudList.size(); k++) {
-                        for (Cloud c : cloudList.get(k)) {
-                            c.setY(c.getY() + cloudDist);
+                if(!jump) {
+                    jump = true;
+                    deltaX = event.getRawX() - initialX;
+                    deltaY = event.getRawX() - initialY;
+                    if (deltaX > 0) {//swiped right
+                        if (player.getX() == centerCoord) {
+                            player.setX(rightCoord);
+                            player.setMovement("MidToRight");
+                        } else if (player.getX() == leftCoord) {
+                            player.setX(centerCoord);
+                            player.setMovement("LeftToMid");
                         }
+                        Log.d(TAG, "Swiped right");
+                    } else if (deltaX < 0) { //swiped left
+                        if (player.getX() == centerCoord) {
+                            player.setX(leftCoord);
+                            player.setMovement("MidToLeft");
+                        } else if (player.getX() == rightCoord) {
+                            player.setX(centerCoord);
+                            player.setMovement("RightToMid");
+                        }
+                        Log.d(TAG, "Swiped left");
+                    } else {
+                        //player.setX((screenWidth - playerBit.getWidth())/2);
+                        jumpStraight = true;
+                        Log.d(TAG, "Tapped");
                     }
-                    cloudList.add(generateCloudRow(numCloudRows + 1));
+                    //cloudList.remove(0);
+                    //Log.d(TAG, cloudList.size() + " " + numCloudRows);
+                    if (cloudCharacterCollide() == 1) {
+                        for (int k = 0; k < cloudList.size(); k++) {
+                            for (Cloud c : cloudList.get(k)) {
+                                c.setY(c.getY() + cloudDist);
+                            }
+                        }
+                        cloudList.add(generateCloudRow(numCloudRows + 1));
+                    }
+                    return true;
                 }
-                return true;
             }
         }
         return super.onTouchEvent(event);
@@ -234,6 +237,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 player.setDrawX(player.getDrawX() - player.getDX());
                 player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY));
             }
+            else
+                jump = false;
             //Log.d(TAG, x + "  " + y);
         }
         canvas.drawBitmap(playerBit, player.getDrawX(), player.getDrawY(), null);
