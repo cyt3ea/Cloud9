@@ -17,6 +17,32 @@ public class Cloud {
     int drawX;
     int drawY;
     boolean touched = false;
+    int disappearCounter = 1000;
+    int counterInterval = 10;
+
+    public int getCounterInterval() {
+        return counterInterval;
+    }
+
+    public void setCounterInterval(int counterInterval) {
+        this.counterInterval = counterInterval;
+    }
+
+    public boolean isTouched() {
+        return touched;
+    }
+
+    public void setTouched(boolean touched) {
+        this.touched = touched;
+    }
+
+    public int getDisappearCounter() {
+        return disappearCounter;
+    }
+
+    public void setDisappearCounter(int disappearCounter) {
+        this.disappearCounter = disappearCounter;
+    }
 
     public int getDrawX() {
         return drawX;

@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Random;
 import java.util.Set;
@@ -140,7 +141,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             }
 
             if (event.getAction() == MotionEvent.ACTION_UP) {
-                if(!jump) {
+                if(!jump && !dead) {
                     jump = true;
                     deltaX = event.getRawX() - initialX;
                     deltaY = event.getRawX() - initialY;
@@ -200,12 +201,25 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
         //clouds
         for(int i = 1; i<=cloudList.size(); i++) {
-            for(Cloud c : cloudList.get(i-1)) {
+            Iterator cloudItr = cloudList.get(i-1).iterator();
+            while(cloudItr.hasNext()) {
+                Cloud c = (Cloud) cloudItr.next();
+                if(c.isTouched())
+                    c.setDisappearCounter(c.getDisappearCounter()-c.getCounterInterval());
                 if(c.getDrawY() < c.getY()) {
                     c.setDrawY(c.getDrawY() + player.getDY());
                     removeOffScreenClouds();
                 }
-                canvas.drawBitmap(cloudBit, c.getDrawX(), c.getDrawY(), null);
+                if(c.getDisappearCounter() > 0)
+                    canvas.drawBitmap(cloudBit, c.getDrawX(), c.getDrawY(), null);
+                else {
+                    cloudItr.remove();
+                    Log.d(TAG, "Removed cloud");
+                    if(cloudCharacterCollide() == -1) {
+                        dead = true;
+                        Log.d(TAG, "Character dead");
+                    }
+                }
             }
         }
 
@@ -221,7 +235,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
         else {
-            if (player.getX() == player.getDrawX() && player.getDrawY() < startY - playerOffset) { //fall down after jumping straight up
+            if ((player.getX() == player.getDrawX() && player.getDrawY() < startY - playerOffset) || (dead && player.getMovement().equals("None") && player.drawY < screenHeight)) { //fall down after jumping straight up
                 player.setDrawY(player.getDrawY() + player.getDY());
             } else if ((player.getDrawX() < player.getX() && player.getDrawX() < centerCoord && !dead) || (dead && player.getMovement().equals("LeftToMid") && player.drawY < screenHeight)) { //left -> mid
                 Log.d(TAG, "Left to Mid");
@@ -240,8 +254,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 player.setDrawX(player.getDrawX() - player.getDX());
                 player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
             }
-            else
+            else {
                 jump = false;
+                player.setMovement("None");
+            }
             //Log.d(TAG, x + "  " + y);
         }
         canvas.drawBitmap(playerBit, player.getDrawX(), player.getDrawY(), null);
@@ -258,19 +274,23 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         else
             closestCloudRow = cloudList.get(1);
         for(Cloud c : closestCloudRow) {
-            if(c.getX() == player.getX())
+            if(c.getX() == player.getX()) {
+                c.setTouched(true);
                 return 1;
+            }
         }
 
         //hits current row player is on
-        if(cloudList.size() == numCloudRows + 1) {
+        if(cloudList.size() == numCloudRows + 1) { //on the ground
             return 0;
         }
         else {
             closestCloudRow = cloudList.get(0);
             for(Cloud c : closestCloudRow) {
-                if(c.getX() == player.getX() )
+                if(c.getX() == player.getX() ) {
+                    c.setTouched(true);
                     return 0;
+                }
             }
         }
         //does not hit any
