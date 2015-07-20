@@ -2,6 +2,7 @@ package kirin.cloud9;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -197,6 +198,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     protected void onDraw(Canvas canvas) {
+
+        if(dead && player.getDrawY() > screenHeight) {
+            thread.setRunning(false);
+        }
+
         canvas.drawBitmap(backgroundBit, 0, 0, null);
 
         //clouds
@@ -235,22 +241,22 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
         else {
-            if ((player.getX() == player.getDrawX() && player.getDrawY() < startY - playerOffset) || (dead && player.getMovement().equals("None") && player.drawY < screenHeight)) { //fall down after jumping straight up
+            if ((player.getX() == player.getDrawX() && player.getDrawY() < startY - playerOffset) || (dead && player.getMovement().equals("None") && player.getDrawY() < screenHeight)) { //fall down after jumping straight up
                 player.setDrawY(player.getDrawY() + player.getDY());
-            } else if ((player.getDrawX() < player.getX() && player.getDrawX() < centerCoord && !dead) || (dead && player.getMovement().equals("LeftToMid") && player.drawY < screenHeight)) { //left -> mid
-                Log.d(TAG, "Left to Mid");
+            } else if ((player.getDrawX() < player.getX() && player.getDrawX() < centerCoord && !dead) || (dead && player.getMovement().equals("LeftToMid") && player.getDrawY() < screenHeight)) { //left -> mid
+                //Log.d(TAG, "Left to Mid");
                 player.setDrawX(player.getDrawX() + player.getDX());
                 player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
-            } else if ((player.getDrawX() > player.getX() && player.getDrawX() > centerCoord && !dead) || (dead && player.getMovement().equals("RightToMid") && player.drawY < screenHeight)) { //right -> mid
-                Log.d(TAG, "Right to Mid");
+            } else if ((player.getDrawX() > player.getX() && player.getDrawX() > centerCoord && !dead) || (dead && player.getMovement().equals("RightToMid") && player.getDrawY() < screenHeight)) { //right -> mid
+                //Log.d(TAG, "Right to Mid");
                 player.setDrawX(player.getDrawX() - player.getDX());
                 player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
-            } else if ((player.getDrawX() < player.getX() && player.getDrawX() >= centerCoord && !dead) || (dead && player.getMovement().equals("MidToRight") && player.drawY < screenHeight)) { //mid -> right
-                Log.d(TAG, "Mid to Right");
+            } else if ((player.getDrawX() < player.getX() && player.getDrawX() >= centerCoord && !dead) || (dead && player.getMovement().equals("MidToRight") && player.getDrawY() < screenHeight)) { //mid -> right
+                //Log.d(TAG, "Mid to Right");
                 player.setDrawX(player.getDrawX() + player.getDX());
                 player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - rightCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
-            } else if ((player.getDrawX() > player.getX() && player.getDrawX() <= centerCoord && !dead) || (dead && player.getMovement().equals("MidToLeft") && player.drawY < screenHeight)) { //mid -> left
-                Log.d(TAG, "Mid to Left");
+            } else if ((player.getDrawX() > player.getX() && player.getDrawX() <= centerCoord && !dead) || (dead && player.getMovement().equals("MidToLeft") && player.getDrawY() < screenHeight)) { //mid -> left
+                //Log.d(TAG, "Mid to Left");
                 player.setDrawX(player.getDrawX() - player.getDX());
                 player.setDrawY((int) (jumpVertexFactor / 2 * (player.getDrawX() - leftCoord) * (player.getDrawX() - centerCoord) + startY - playerOffset));
             }

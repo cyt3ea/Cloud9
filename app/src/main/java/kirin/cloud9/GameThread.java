@@ -1,5 +1,7 @@
 package kirin.cloud9;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
@@ -32,5 +34,9 @@ public class GameThread extends Thread {
             tickCount++;
         }
         Log.d(TAG, "Game loop executed " + tickCount + " times");
+        Intent gameIntent = new Intent(gameView.getContext(), GameOverActivity.class);
+        Activity a = (Activity) gameView.getContext();
+        a.startActivity(gameIntent);
+        a.finish();
     }
 }

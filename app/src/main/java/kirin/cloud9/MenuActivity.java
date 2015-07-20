@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 
 /**
@@ -12,13 +13,13 @@ import android.widget.ImageButton;
  */
 public class MenuActivity extends Activity {
 
-    ImageButton playButton;
+    Button playButton;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
 
-        playButton = (ImageButton) findViewById(R.id.play_button);
+        playButton = (Button) findViewById(R.id.play_button);
         playButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
