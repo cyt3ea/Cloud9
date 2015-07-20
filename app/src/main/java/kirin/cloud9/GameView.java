@@ -275,14 +275,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         ArrayList<Cloud> closestCloudRow;
 
         //hits row of clouds above it
-        if(cloudList.size() == numCloudRows + 1)
-            closestCloudRow = cloudList.get(0);
-        else
-            closestCloudRow = cloudList.get(1);
-        for(Cloud c : closestCloudRow) {
-            if(c.getX() == player.getX()) {
-                c.setTouched(true);
-                return 1;
+        if(jump) {
+            if (cloudList.size() == numCloudRows + 1)
+                closestCloudRow = cloudList.get(0);
+            else
+                closestCloudRow = cloudList.get(1);
+            for (Cloud c : closestCloudRow) {
+                if (c.getX() == player.getX()) {
+                    c.setTouched(true);
+                    return 1;
+                }
             }
         }
 

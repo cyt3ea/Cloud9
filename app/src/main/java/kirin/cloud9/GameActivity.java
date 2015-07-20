@@ -1,6 +1,8 @@
 package kirin.cloud9;
 
 import android.app.Activity;
+import android.app.Application;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
@@ -24,7 +26,7 @@ public class GameActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(new GameView(this));
+        setContentView(R.layout.game);
 
         Log.d(TAG, "Set Content View");
 

@@ -34,9 +34,11 @@ public class GameThread extends Thread {
             tickCount++;
         }
         Log.d(TAG, "Game loop executed " + tickCount + " times");
-        Intent gameIntent = new Intent(gameView.getContext(), GameOverActivity.class);
-        Activity a = (Activity) gameView.getContext();
-        a.startActivity(gameIntent);
-        a.finish();
+        Intent intent = new Intent().setClass(gameView.getContext(), GameOverActivity.class);
+        ((Activity) gameView.getContext()).startActivity(intent);
+        //Intent gameIntent = new Intent(gameView.getContext(), GameOverActivity.class);
+        //Activity a = (Activity) gameView.getContext();
+        //a.setContentView(R.layout.gameover);
+        //a.finish();
     }
 }
