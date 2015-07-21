@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -22,6 +23,8 @@ public class GameActivity extends Activity {
 
     Player player;
     String TAG = "GameActivity: ";
+    RelativeLayout gameOverLayout;
+    Button replay, menu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,8 +32,35 @@ public class GameActivity extends Activity {
         setContentView(R.layout.game);
 
         Log.d(TAG, "Set Content View");
+        gameOverLayout = (RelativeLayout) findViewById(R.id.gameoverlayout);
+        gameOverLayout.setVisibility(View.INVISIBLE);
 
-        Bitmap bm = BitmapFactory.decodeResource(getResources(), R.drawable.fox);
+        replay = (Button) findViewById(R.id.replay);
+        replay.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Intent gameIntent = new Intent(getApplicationContext(), GameActivity.class);
+                startActivity(gameIntent);
+                finish();
+                return true;
+            }
+        });
+
+        menu = (Button) findViewById(R.id.menu);
+        menu.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Intent gameIntent = new Intent(getApplicationContext(), MenuActivity.class);
+                startActivity(gameIntent);
+                finish();
+                return true;
+            }
+        });
+    }
+
+    public void setGameOverVisible() {
+        //Log.d(TAG, "SETTING GAME OVER VISIBLE");
+        gameOverLayout.setVisibility(View.VISIBLE);
     }
 
     @Override

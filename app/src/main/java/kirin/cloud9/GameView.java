@@ -15,6 +15,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     int playerOffset;
     ArrayList<ArrayList<Cloud>> cloudList = new ArrayList<ArrayList<Cloud>>();
 
+    boolean gameOver = false;
     boolean jump = false;
 
     Random rng = new Random();
@@ -61,18 +63,23 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private float deltaX = 0;
     private float deltaY = 0;
 
+    Context mContext;
+
     public GameView(Context context) {
         super(context);
+        mContext = context;
         init();
     }
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
         init();
     }
 
     public GameView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        mContext = context;
         init();
     }
 
@@ -83,6 +90,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         thread = new GameThread(getHolder(), this);
         setFocusable(true);
     }
+
+    public void setGameOver(boolean x) { gameOver = x; }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -217,6 +226,10 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
         if(dead && player.getDrawY() > screenHeight) {
             thread.setRunning(false);
+        }
+
+        if(gameOver) {
+            ((GameActivity)mContext).setGameOverVisible();
         }
 
         canvas.drawBitmap(backgroundBit, 0, 0, null);
