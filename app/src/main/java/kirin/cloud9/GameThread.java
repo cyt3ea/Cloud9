@@ -35,10 +35,5 @@ public class GameThread extends Thread {
         }
         Log.d(TAG, "Game loop executed " + tickCount + " times");
         gameView.setGameOver(true);
-        try {
-            join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }

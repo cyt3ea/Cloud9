@@ -27,10 +27,12 @@ public class SplashActivity extends Activity {
         Thread logoTimer = new Thread() {
             public void run() {
                 try {
-                    sleep(2350);
-                    Intent menuIntent = new Intent(getApplicationContext(), MenuActivity.class);
+                    sleep(5000);
+                    Intent gameIntent = new Intent(SplashActivity.this, GameActivity.class);
+                    startActivity(gameIntent);
+                    //Intent menuIntent = new Intent(getApplicationContext(), MenuActivity.class);
                     //logoMusic.stop();
-                    startActivity(menuIntent);
+                    //startActivity(menuIntent);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } finally {

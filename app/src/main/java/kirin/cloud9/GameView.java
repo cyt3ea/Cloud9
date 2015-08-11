@@ -230,6 +230,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
         if(gameOver) {
             ((GameActivity)mContext).setGameOverVisible();
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         canvas.drawBitmap(backgroundBit, 0, 0, null);

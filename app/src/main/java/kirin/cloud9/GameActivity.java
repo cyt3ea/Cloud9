@@ -39,9 +39,10 @@ public class GameActivity extends Activity {
         replay.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                Intent gameIntent = new Intent(getApplicationContext(), GameActivity.class);
-                startActivity(gameIntent);
+                Intent intent = getIntent();
                 finish();
+                //Intent splashIntent = new Intent(GameActivity.this, SplashActivity.class);
+                startActivity(intent);
                 return true;
             }
         });
@@ -50,9 +51,9 @@ public class GameActivity extends Activity {
         menu.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                Intent gameIntent = new Intent(getApplicationContext(), MenuActivity.class);
-                startActivity(gameIntent);
                 finish();
+                Intent gameIntent = new Intent(GameActivity.this, MenuActivity.class);
+                startActivity(gameIntent);
                 return true;
             }
         });
